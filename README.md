@@ -1,0 +1,2 @@
+# autolux
+Test django project 
