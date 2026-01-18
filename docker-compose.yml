@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: autolux_db
+    environment:
+      POSTGRES_DB: autolux
+      POSTGRES_USER: autolux_user
+      POSTGRES_PASSWORD: superpassword
+    volumes:
+      - autolux_db_data:/var/lib/postgresql/data
+    restart: always
+
+  web:
+    build: .
+    container_name: autolux_web
+    depends_on:
+      - db
+    environment:
+      DJANGO_SETTINGS_MODULE: "autolux.settings"
+      DATABASE_URL: "postgres://autolux_user:superpassword@db:5432/autolux"
+      SECRET_KEY: "pon_aqui_una_clave_fuerte"
+      DEBUG: "False"
+    ports:
+      - "8000:8000"
+    volumes:
+      - static_volume:/app/staticfiles
+    restart: always
+
+volumes:
+  autolux_db_data:
+  static_volume:

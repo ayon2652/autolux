@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Inventario</h1>
+<div class="inventory-grid">
+{% for stock in stocks %}
+    <div class="stock-item">
+        
+        {% if stock.Vendido %}
+            <strong>[VENDIDO]</strong>
+        {% endif %}
+        <a href="{% url 'item_page' stock.id %}">
+        <h2>{{ stock.Titulo }}</h2>
+        <img src="{{ stock.Foto.url }}" alt="Foto del vehículo">
+        </a>
+        <p>{{ stock.Descrepción }}</p>
+
+        <p>Fecha de creación: {{ stock.Fecha_de_creación }}</p>
+        
+    </div>
+{% empty %}
+    <p>No hay elementos en el inventario.</p>
+{% endfor %}
+</div>
+{% endblock %}
