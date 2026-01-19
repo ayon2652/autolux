@@ -31,6 +31,9 @@ SECRET_KEY = 'django-insecure-(^@r_#!8ihz^4n$hn^$%o6kr!p9qr$hb2gjl29m8qxs6cskbt4
 DEBUG = True
 
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://srv1281209.hstgr.cloud',
+]
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
