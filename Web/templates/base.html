@@ -2,14 +2,37 @@
 
 <!DOCTYPE html>
 <html lang="ES">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script src="https://kit.fontawesome.com/b4c1716762.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <title>Autolux</title>
 </head>
+
 <body>
+
+    <nav>
+        <ul class="menu">
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/stock/">Inventario</a></li>
+            {% if not user.is_authenticated %}
+           <li class="item button secondary"><a href="/signup/">Crear Cuenta</a></li>
+             <li class="item button"><a href="/login/">Iniciar Sesión</a></li>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <li><a href="/stock/add/">Añadir vehículo</a></li>
+            <li class="item button"><a href="/logout/">Cerrar Sesión</a></li>
+            {% endif %}
+            <li class="toggle"><a href="#"><i class="fa-solid fa-bars"></i></a></li>
+        </ul>
+    </nav>
+
+
+
     <nav>
         <ul>
             <li><a href="/">Inicio</a></li>
@@ -22,12 +45,13 @@
             <li><a href="/stock/add/">Añadir vehículo</a></li>
             <li><a href="/logout/">Cerrar Sesión</a></li>
             {% endif %}
-            
+
         </ul>
     </nav>
-<section>
-    {% block content %}
-    {% endblock %}
-</section>
+    <section>
+        {% block content %}
+        {% endblock %}
+    </section>
 </body>
+
 </html>
