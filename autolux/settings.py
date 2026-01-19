@@ -35,10 +35,6 @@ DEBUG = False
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(",")
 
 
-STATIC_ROOT = "/var/www/autolux_static"
-
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -127,7 +123,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 import os
 
-STATIC_URL = 'static/'
-media_url = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_URL = '/static/'
+STATIC_ROOT = "/var/www/autolux_static"
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = "/var/www/autolux_media"
+
 LOGIN_URL = '/login/'
+
