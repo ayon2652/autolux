@@ -62,12 +62,12 @@ def signout(request):
     return redirect('home')
 
 # vista para la pagina de stock
-@login_required
+
 
 def stock_view(request):
     stocks = Stock.objects.all()
     return render(request, 'stock.html', {'stocks': stocks})
-
+@login_required
 def addstock(request):
     if request.method == 'POST':
         form = StockForm(request.POST, request.FILES)
