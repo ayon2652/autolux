@@ -1,7 +1,57 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{ stock.Titulo }}</h1>
-<p>{{ stock.Descrepción }}</p>
-<p>Fecha de creación: {{ stock.Fecha_de_creación }}</p>
+
+<div class="item-page">
+    <main class="item-main">
+        <h1>{{ stock.Titulo }}</h1>
+        <img src="{{ stock.Imagen.url }}" alt="{{ stock.Titulo }}" style="max-width:400px; height:auto;">
+        <p>{{ stock.Descrepción }}</p>
+        <p>Fecha de creación: {{ stock.Fecha_de_creación }}</p>
+    </main>
+    <aside class="sidemain">
+        <div class="price-box"> <span class="price-label">Precio</span>
+            <span class="price-value">{{ stock.Precio }} €</span>
+        </div>
+        <div class="side-box">
+            <table>
+                <tr>
+                    <td class="t-label">Marca</td>
+                    <td class="t-value h6">{{ stock.Marca }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Modelo</td>
+                    <td class="t-value h6">{{ stock.Modelo }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Carrocería</td>
+                    <td class="t-value h6">{{ stock.Carrocería }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Kilometros</td>
+                    <td class="t-value h6">{{ stock.Kilometraje }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Año</td>
+                    <td class="t-value h6">{{ stock.Año }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Motor</td>
+                    <td class="t-value h6">{{ stock.Motor }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Combustible</td>
+                    <td class="t-value h6">{{ stock.Combustible }}</td>
+                </tr>
+                <tr>
+                    <td class="t-label">Color exterior</td>
+                    <td class="t-value h6">{{ stock.Color }}</td>
+                </tr>
+
+            </table>
+        </div>
+    </aside>
+</div>
+
+
 {% endblock %}

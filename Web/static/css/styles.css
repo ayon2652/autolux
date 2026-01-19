@@ -190,3 +190,102 @@ nav ul li a:hover {
     min-height: 70vh;
 }
 }
+
+
+/* --- Layout general --- */
+.item-page {
+    display: grid;
+    place-items: center;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    max-width: 90%;
+    margin: 0 auto;
+    align-items: baseline;
+}
+
+/* --- Contenido principal en cajas --- */
+.item-main > * {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* --- Sidebar derecha --- */
+.sidemain {
+    position: sticky;
+    top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* --- Caja del precio destacada --- */
+.price-box {
+    background: #ff7a00; /* naranja */
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+}
+
+.price-box .price-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.9;
+}
+
+.price-box .price-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+/* --- Caja general del sidebar (tabla incluida) --- */
+.side-box {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* --- Estilo de la tabla del sidebar --- */
+.sidemain table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.sidemain table tr {
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.sidemain table tr:last-child {
+    border-bottom: none;
+}
+
+.sidemain table td {
+    padding: 0.6rem 0;
+}
+
+.sidemain table td:first-child {
+    font-weight: 600;
+    color: #333;
+}
+
+.sidemain table td:last-child {
+    text-align: right;
+    color: #555;
+}
+
+/* --- Responsive --- */
+@media (max-width: 900px) {
+    .item-page {
+        grid-template-columns: 1fr;
+    }
+
+    .sidemain {
+        position: static;
+    }
+}
