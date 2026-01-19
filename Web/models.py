@@ -22,3 +22,6 @@ class Stock(models.Model):
 
     def __str__(self):
         return self.Marca + " " + self.Modelo + " (" + str(self.Año) + ")"
+    def precio_formateado(self): 
+        valor = float(self.Precio) 
+        return f"{valor:,.0f}".replace(",", " ")
