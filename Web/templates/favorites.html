@@ -30,7 +30,7 @@
                 </label>
 
                 {% if stock.Foto %}
-                <img src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}">
+                <img src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
                 {% else %}
                 Sin imagen
                 {% endif %}

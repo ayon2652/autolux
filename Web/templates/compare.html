@@ -22,7 +22,7 @@
                     <!-- Cabecera de cada vehículo seleccionado -->
                     <th class="compare-vehicle">
                         {% if stock.Foto %}
-                        <img class="compare-photo" src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}">
+                        <img class="compare-photo" src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
                         {% endif %}
                         <p class="compare-title">{{ stock.Marca }} {{ stock.Modelo }}</p>
                         <p class="compare-sub">{{ stock.Titulo }}</p>

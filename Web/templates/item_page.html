@@ -22,7 +22,7 @@
             <!-- Imagen principal del vehículo -->
             <div class="detail-photo">
                 {% if gallery_images %}
-                <img id="main-photo" src="{{ gallery_images.0 }}" alt="{{ stock.Titulo }}">
+                <img id="main-photo" src="{{ gallery_images.0 }}" alt="{{ stock.Titulo }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
                 {% else %}
                 Sin imagen disponible
                 {% endif %}
@@ -33,7 +33,7 @@
             <div class="thumb-strip" id="thumb-strip">
                 {% for image_url in gallery_images %}
                 <button class="thumb-btn{% if forloop.first %} active{% endif %}" type="button" data-image="{{ image_url }}" aria-label="Imagen {{ forloop.counter }} del vehículo">
-                    <img src="{{ image_url }}" alt="Miniatura {{ forloop.counter }}">
+                    <img src="{{ image_url }}" alt="Miniatura {{ forloop.counter }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
                 </button>
                 {% endfor %}
             </div>
@@ -91,7 +91,7 @@
                 <article class="similar-card">
                     <div class="similar-photo">
                         {% if vehicle.Foto %}
-                        <img src="{{ vehicle.Foto.url }}" alt="{{ vehicle.Marca }} {{ vehicle.Modelo }}">
+                        <img src="{{ vehicle.Foto.url }}" alt="{{ vehicle.Marca }} {{ vehicle.Modelo }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
                         {% else %}
                         Sin imagen
                         {% endif %}

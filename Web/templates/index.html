@@ -78,7 +78,7 @@
 				<a href="{% url 'item_page' stock.id %}">
 					<div class="stock-photo">
 						{% if stock.Foto %}
-						<img src="{{ stock.Foto.url }}" alt="{{ stock.Titulo }}">
+						<img src="{{ stock.Foto.url }}" alt="{{ stock.Titulo }}" onerror="this.onerror=null;this.src='/static/img/no-image.svg';">
 						{% else %}
 						Sin imagen
 						{% endif %}
