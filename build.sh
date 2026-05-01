@@ -4,6 +4,8 @@ pip install -r requirements.txt
 
 python manage.py migrate
 
+python manage.py collectstatic --noinput
+
 python manage.py shell <<'PY'
 import os
 from django.contrib.auth import get_user_model
