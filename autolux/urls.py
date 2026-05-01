@@ -16,11 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
-from django.urls import include, path
+from django.urls import include, path, re_path
 from Web import views
 from Web.sitemaps import StaticViewSitemap, StockSitemap
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
 
 
 sitemaps = {
@@ -48,4 +49,11 @@ urlpatterns = [
     path('stock/lookup/', views.vehicle_lookup, name='vehicle_lookup'),
     path('item/<int:stock_id>/available-slots/', views.test_drive_available_slots, name='test_drive_available_slots'),
     path('item/<int:stock_id>/', views.item_page, name='item_page'),
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]

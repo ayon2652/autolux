@@ -3,6 +3,10 @@ services:
     name: autolux
     runtime: python
     plan: free
+    disks:
+      - name: media
+        mountPath: /var/data
+        sizeGB: 1
     buildCommand: ./build.sh
     startCommand: gunicorn autolux.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /
@@ -13,6 +17,8 @@ services:
         value: autolux.settings
       - key: DEBUG
         value: "False"
+      - key: MEDIA_ROOT
+        value: /var/data/media
       - key: ALLOWED_HOSTS
         value: "*"
       - key: CSRF_TRUSTED_ORIGINS
