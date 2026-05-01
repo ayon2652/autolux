@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='stock',
             name='Año',
-            field=models.DateField(),
+            field=models.PositiveSmallIntegerField(),
         ),
     ]
