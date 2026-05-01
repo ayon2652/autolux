@@ -71,3 +71,21 @@ Además, el proyecto integra servicios externos para enriquecer la información 
 - [Web/templates/](Web/templates/): plantillas HTML.
 - [Web/static/](Web/static/): recursos estáticos propios.
 
+## Preparación para producción
+
+1. Crear entorno e instalar dependencias:
+	- `python -m venv .venv`
+	- `pip install -r requirements.txt`
+2. Crear `.env` a partir de `.env.example` y completar:
+	- `SECRET_KEY`
+	- `ALLOWED_HOSTS`
+	- `CSRF_TRUSTED_ORIGINS`
+	- `DATABASE_URL` (PostgreSQL)
+3. Ejecutar migraciones y recopilar estáticos:
+	- `python manage.py migrate`
+	- `python manage.py collectstatic --noinput`
+4. Validar configuración de despliegue:
+	- `python manage.py check --deploy`
+5. Ejecutar con Gunicorn:
+	- `gunicorn autolux.wsgi:application --bind 0.0.0.0:8000`
+
