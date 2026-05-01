@@ -1,18 +1,126 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="auth-form">
-    <div class="form-box">
-        <h1>Añadir vehículo</h1>
 
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
+<!-- Contenedor principal del asistente de alta de vehículos -->
+<section class="wizard-shell">
+    <div class="wizard-card">
+        <!-- Cabecera del wizard con título, descripción y barra de progreso -->
+        <div class="wizard-header">
+            <h1>Añadir vehículo</h1>
+            <p>Completa el alta paso a paso. Al final verás un resumen antes de confirmar el guardado.</p>
 
-            <button type="submit">Guardar</button>
-        </form>
+            <!-- Indicador visual del paso actual dentro del proceso -->
+            <div class="wizard-progress" id="wizard-progress">
+                <span class="wizard-progress-step active"></span>
+                <span class="wizard-progress-step"></span>
+                <span class="wizard-progress-step"></span>
+                <span class="wizard-progress-step"></span>
+            </div>
+        </div>
+
+        <div class="wizard-body">
+            <!-- Mensaje general de error si el formulario tiene campos inválidos -->
+            {% if form.errors %}
+            <div class="wizard-errors">
+                Revisa los campos marcados y vuelve a intentarlo.
+            </div>
+            {% endif %}
+
+            <!-- Formulario principal del asistente, con subida de archivos y soporte de autocompletado -->
+            <form method="POST" enctype="multipart/form-data" id="stock-wizard-form" data-lookup-url="{% url 'vehicle_lookup' %}" novalidate>
+                {% csrf_token %}
+                <!-- Recursos extra necesarios para widgets enriquecidos -->
+                {{ form.media }}
+
+                <!-- Renderizado de campos ocultos del formulario -->
+                {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+
+                <!-- Paso 1: datos básicos e identificativos del vehículo -->
+                <div class="wizard-step active" data-step="1">
+                    <div class="wizard-step-label">Paso 1 de 4</div>
+                    <h2>Presentación del vehículo</h2>
+                    <p class="wizard-step-copy">Empieza con la información general para identificar el coche rápidamente.</p>
+
+                    <!-- Acción para autocompletar datos mediante matrícula o VIN -->
+                    <div class="wizard-lookup">
+                        <button type="button" class="wizard-lookup-btn" id="vehicle-lookup-btn">Autocompletar por matrícula/VIN</button>
+                        <span class="wizard-lookup-status" id="vehicle-lookup-status"></span>
+                    </div>
+
+                    <!-- Solo se muestran en este paso los campos básicos y descriptivos -->
+                    {% for field in form.visible_fields %}
+                        {% if field.name == 'Titulo' or field.name == 'Matricula' or field.name == 'VIN' or field.name == 'Descrepción' %}
+                        <div class="wizard-field" data-summary-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="wizard-required"> *</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.help_text %}<p class="wizard-help">{{ field.help_text }}</p>{% endif %}
+                            {% if field.errors %}<div class="wizard-field-errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Paso 2: datos técnicos del vehículo -->
+                <div class="wizard-step" data-step="2">
+                    <div class="wizard-step-label">Paso 2 de 4</div>
+                    <h2>Datos técnicos</h2>
+                    <p class="wizard-step-copy">Ahora indica marca, modelo, año, kilometraje, versión y características técnicas.</p>
+
+                    <!-- Campos relacionados con especificaciones mecánicas y de catálogo -->
+                    {% for field in form.visible_fields %}
+                        {% if field.name == 'Marca' or field.name == 'Modelo' or field.name == 'Año' or field.name == 'Kilometros' or field.name == 'Versión' or field.name == 'Carrocería' or field.name == 'Puertas' or field.name == 'Motor' %}
+                        <div class="wizard-field" data-summary-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="wizard-required"> *</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="wizard-field-errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Paso 3: configuración comercial, precio y fotos -->
+                <div class="wizard-step" data-step="3">
+                    <div class="wizard-step-label">Paso 3 de 4</div>
+                    <h2>Configuración y precio</h2>
+                    <p class="wizard-step-copy">Completa tracción, transmisión, combustible, color, precio y fotos del vehículo.</p>
+
+                    <!-- Campos de venta, configuración final y subida de imágenes -->
+                    {% for field in form.visible_fields %}
+                        {% if field.name == 'Tracción' or field.name == 'Transmisión' or field.name == 'Combustible' or field.name == 'Fecha_matriculación' or field.name == 'color' or field.name == 'Precio' or field.name == 'Foto' or field.name == 'Fotos' %}
+                        <div class="wizard-field" data-summary-label="{{ field.label }}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="wizard-required"> *</span>{% endif %}</label>
+                            {{ field }}
+                            {% if field.errors %}<div class="wizard-field-errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                <!-- Paso 4: vista previa de todos los datos antes de guardar -->
+                <div class="wizard-step" data-step="4">
+                    <div class="wizard-step-label">Paso 4 de 4</div>
+                    <h2>Resumen y confirmación</h2>
+                    <p class="wizard-step-copy">Revisa toda la información antes de guardar el vehículo.</p>
+
+                    <!-- El resumen se rellena dinámicamente con JavaScript -->
+                    <div class="wizard-summary" id="wizard-summary"></div>
+                </div>
+
+                <!-- Botones de navegación entre pasos y confirmación final -->
+                <div class="wizard-nav">
+                    <button type="button" class="wizard-btn secondary" id="wizard-prev" disabled>Anterior</button>
+                    <button type="button" class="wizard-btn primary" id="wizard-next">Siguiente</button>
+                    <button type="submit" class="wizard-btn confirm wizard-submit-hidden" id="wizard-submit">Confirmar y guardar</button>
+                </div>
+            </form>
+        </div>
     </div>
 </section>
+
+
 
 
 {% endblock %}

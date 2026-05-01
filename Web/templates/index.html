@@ -1,17 +1,224 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Inicio</h1>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
-<p> Lorem ipsum dolor sit amet consectetur adipisicing elit. Consequatur consectetur totam iusto suscipit minima dolor perferendis sapiente distinctio officia quibusdam quae autem qui hic earum vel, voluptates facere cupiditate saepe inventore nam. Omnis quae amet quasi laboriosam. Iusto ab quo quasi cum maxime consectetur. Maxime fugit molestias sed pariatur maiores nisi quod eligendi voluptatibus. Dolorum molestias ipsum magni quam earum veniam nulla, quod modi. Nostrum qui et facere laborum nulla est adipisci recusandae quos amet velit. Tenetur fugiat neque id odio deleniti fugit animi culpa doloremque a dignissimos vero voluptate voluptates, provident laudantium officiis aliquam eos corrupti numquam asperiores consequuntur!
-</p>
+
+<!-- Contenedor principal de la página de inicio -->
+<div class="home-shell">
+	<!-- Hero principal con propuesta de valor, CTA y carrusel de vehículos destacados -->
+	<header id="hero" class="hero" {% if hero_stock and hero_stock.Foto %}data-hero-photo="{{ hero_stock.Foto.url }}"{% endif %}>
+		<div class="hero-content">
+			<h1>Encuentra tu coche ideal, sin complicaciones</h1>
+			<p>
+				En Autolux seleccionamos vehículos revisados y listos para entregar,
+				con trato cercano y precios competitivos.
+			</p>
+			<!-- Destacado principal enlazado a la ficha del vehículo -->
+			{% if hero_stock %}
+			<p id="hero-highlight" class="hero-highlight">Destacado: <a href="{% url 'item_page' hero_stock.id %}" class="hero-highlight-link">{{ hero_stock.Marca }} {{ hero_stock.Modelo }} {{ hero_stock.Año }}</a> · €{{ hero_stock.precio_formateado }}</p>
+			{% endif %}
+			<!-- Botones principales según el tipo de usuario -->
+			<div class="hero-actions">
+				<a href="/stock/" class="btn-main">Ver coches en stock</a>
+				{% if not user.is_authenticated %}
+				<a href="/login/" class="btn-alt">Iniciar sesión</a>
+				{% elif user.is_staff %}
+				<a href="/stock/add/" class="btn-alt">Publicar vehículo</a>
+				{% endif %}
+			</div>
+			<!-- Controles del carrusel del hero cuando hay más de un destacado -->
+			{% if featured_stocks|length > 1 %}
+			<div class="hero-controls">
+				<button id="hero-prev" class="hero-arrow" type="button" aria-label="Vehículo anterior">
+					<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+				</button>
+				<div id="hero-dots" class="hero-dots">
+					{% for stock in featured_stocks %}
+					<button class="hero-dot{% if forloop.first %} active{% endif %}" type="button" data-index="{{ forloop.counter0 }}" aria-label="Ir al vehículo {{ forloop.counter }}"></button>
+					{% endfor %}
+				</div>
+				<button id="hero-next" class="hero-arrow" type="button" aria-label="Siguiente vehículo">
+					<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m8.59 16.59 1.41 1.41L16 12 10 6 8.59 7.41 13.17 12z"/></svg>
+				</button>
+			</div>
+			{% endif %}
+		</div>
+	</header>
+
+	<!-- Bloque de beneficios rápidos / propuesta comercial -->
+	<section class="grid-two">
+		<article class="card feature-card">
+			<div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8h2v-2h14v2h2v-8l-2.08-5.99zM6.5 14A1.5 1.5 0 1 1 8 12.5 1.5 1.5 0 0 1 6.5 14zm11 0a1.5 1.5 0 1 1 1.5-1.5 1.5 1.5 0 0 1-1.5 1.5zM5.14 10l1.04-3h11.64l1.04 3z"/></svg></div>
+			<div class="feature-copy">
+				<h3>Coches en stock</h3>
+				<p>
+					Recorre nuestro inventario con unidades destacadas y encuentra el coche
+					que mejor encaja contigo y tu presupuesto.
+				</p>
+			</div>
+		</article>
+		<article class="card feature-card">
+			<div class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M15.5 18.5c-1.93 0-3.66-.78-4.92-2.04-.62-.62-1.12-1.36-1.46-2.18H6v-2h2.49c-.03-.33-.05-.66-.05-1s.02-.67.05-1H6V8h3.12c.34-.82.84-1.56 1.46-2.18A6.95 6.95 0 0 1 15.5 3.5c1.44 0 2.78.43 3.89 1.17l-1.14 1.65a4.93 4.93 0 0 0-2.75-.82c-1.37 0-2.6.56-3.49 1.45-.27.27-.51.57-.71.9H16v2h-5.33c-.04.33-.07.66-.07 1s.03.67.07 1H16v2h-4.7c.2.33.44.63.71.9.89.89 2.12 1.45 3.49 1.45.99 0 1.91-.29 2.69-.79l1.19 1.62c-1.09.73-2.4 1.16-3.88 1.16z"/></svg></div>
+			<div class="feature-copy">
+				<h3>Precios que se ajustan a ti</h3>
+				<p>
+					Ofertas reales y condiciones claras para que compres con confianza,
+					sin sorpresas durante el proceso.
+				</p>
+			</div>
+		</article>
+	</section>
+
+	<!-- Previsualización del stock destacado en formato tarjeta -->
+	<section class="stock-preview">
+		<h2 class="section-title">Coches en stock</h2>
+		<div class="stock-grid">
+			{% for stock in featured_stocks %}
+			<!-- Tarjeta resumida de un vehículo destacado -->
+			<article class="stock-card">
+				<a href="{% url 'item_page' stock.id %}">
+					<div class="stock-photo">
+						{% if stock.Foto %}
+						<img src="{{ stock.Foto.url }}" alt="{{ stock.Titulo }}">
+						{% else %}
+						Sin imagen
+						{% endif %}
+					</div>
+					<div class="stock-body">
+						<span class="stock-badge">EN STOCK</span>
+						<h4>{{ stock.Marca }} {{ stock.Modelo }} {{ stock.Año }}</h4>
+						<p class="stock-meta">{{ stock.Transmisión }} · {{ stock.Combustible }}</p>
+						<p class="stock-price">€{{ stock.precio_formateado }}</p>
+						<p class="stock-link">Ver detalle del vehículo <span class="inline-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="m8.59 16.59 1.41 1.41L16 12 10 6 8.59 7.41 13.17 12z"/></svg></span></p>
+					</div>
+				</a>
+			</article>
+			{% empty %}
+			<article class="card">
+				<p>No hay vehículos disponibles ahora mismo.</p>
+			</article>
+			{% endfor %}
+		</div>
+		<div class="stock-footer">
+			<a href="/stock/" class="btn-alt-dark">Ver todo el stock</a>
+		</div>
+	</section>
+
+	<!-- Bloque comercial con razones para elegir el concesionario -->
+	<section class="why-section">
+		<div class="why-header">
+			<h2 class="section-title">¿Por qué elegirnos?</h2>
+			<p class="why-subtitle">Un servicio pensado para transmitir confianza, valor y una experiencia de compra clara de principio a fin.</p>
+		</div>
+		<div class="why-grid">
+			<article class="why-item">
+				<div class="why-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 2 4 5v6c0 5.05 3.41 9.78 8 11 4.59-1.22 8-5.95 8-11V5l-8-3zm-1.06 14.17L7.7 12.94l1.41-1.41 1.83 1.82 4.95-4.95 1.41 1.41-6.36 6.36z"/></svg></div>
+				<h4>Ofertas especiales</h4>
+				<p>Descuentos en vehículos seleccionados con excelente relación calidad-precio.</p>
+			</article>
+			<article class="why-item">
+				<div class="why-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm1 16h-2v-2h2v2zm2.07-7.75-.9.92A3.49 3.49 0 0 0 13 13h-2v-.5c0-.83.34-1.58.88-2.12l1.24-1.26A1.99 1.99 0 0 0 11.7 5.7c-.78 0-1.48.45-1.81 1.14l-1.8-.86A3.99 3.99 0 0 1 15.07 9.25z"/></svg></div>
+				<h4>Garantía y revisión</h4>
+				<p>Cada unidad se entrega revisada para que conduzcas con tranquilidad desde el primer día.</p>
+			</article>
+			<article class="why-item">
+				<div class="why-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 12c2.76 0 5-2.24 5-5S14.76 2 12 2 7 4.24 7 7s2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5zm6 5H6v-.56c.6-.89 3.77-2.44 6-2.44s5.4 1.55 6 2.44V19z"/></svg></div>
+				<h4>Asesoramiento cercano</h4>
+				<p>Te ayudamos a comparar opciones y resolver dudas antes de tomar una decisión.</p>
+			</article>
+			<article class="why-item">
+				<div class="why-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M19 7h-3V6a4 4 0 1 0-8 0v1H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zm-9-1a2 2 0 1 1 4 0v1h-4V6zm2 8.5a2.5 2.5 0 1 1 2.45-3h-1.58a1 1 0 1 0 0 2h1.58A2.5 2.5 0 0 1 12 14.5z"/></svg></div>
+				<h4>Entrega lista para rodar</h4>
+				<p>Preparamos cada coche con detalle para una entrega rápida y sin contratiempos.</p>
+			</article>
+		</div>
+	</section>
+
+	<!-- Sección de reseñas reales obtenidas desde Google Places -->
+	{% if google_reviews %}
+	<section class="reviews-section">
+		<div class="reviews-head">
+			<div>
+				<h2 class="section-title section-title-no-margin">Reseñas de clientes</h2>
+				<p class="reviews-summary">
+					<strong>{{ google_business.name }}</strong>
+					· {{ google_business.rating }} / 5
+					· {{ google_business.user_ratings_total }} valoraciones
+				</p>
+				<span class="reviews-rating-chip">★ {{ google_business.rating }} en Google</span>
+			</div>
+			{% if google_business.url %}
+			<a href="{{ google_business.url }}" target="_blank" rel="noopener" class="btn-alt-dark">Ver en Google Maps</a>
+			{% endif %}
+		</div>
+
+		<!-- Slider horizontal de reseñas -->
+		<div class="reviews-grid">
+			<div class="reviews-slider-head">
+				<div class="reviews-slider-controls">
+					<button type="button" class="reviews-arrow" id="reviews-prev" aria-label="Reseña anterior">
+						<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+					</button>
+					<button type="button" class="reviews-arrow" id="reviews-next" aria-label="Siguiente reseña">
+						<svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m8.59 16.59 1.41 1.41L16 12 10 6 8.59 7.41 13.17 12z"/></svg>
+					</button>
+				</div>
+			</div>
+			<div class="reviews-track" id="reviews-track">
+				{% for review in google_reviews %}
+				<!-- Tarjeta individual de reseña -->
+				<article class="review-card">
+					<div class="review-top">
+						<div class="review-user">
+							<span class="review-avatar" aria-hidden="true">
+								{% if review.profile_photo_url %}
+								<img src="{{ review.profile_photo_url }}" alt="{{ review.author_name }}">
+								{% else %}
+								{{ review.author_name|slice:":1"|upper }}
+								{% endif %}
+							</span>
+							<div class="review-meta">
+								<span class="review-author">{{ review.author_name }}</span>
+								{% if review.relative_time_description %}
+								<p class="review-time">{{ review.relative_time_description }}</p>
+								{% endif %}
+							</div>
+						</div>
+						<span class="review-stars">★ {{ review.rating }}</span>
+					</div>
+					<p class="review-text">{{ review.text }}</p>
+				</article>
+				{% endfor %}
+			</div>
+			<div class="reviews-dots" id="reviews-dots"></div>
+		</div>
+	</section>
+	<!-- Fallback cuando la API de Google no devuelve reseñas -->
+	{% elif google_reviews_fallback_url %}
+	<section class="reviews-section">
+		<div class="card reviews-fallback-card">
+			<h2 class="section-title section-title-no-margin">Reseñas de clientes</h2>
+			<p class="reviews-fallback-text">No se pudieron cargar automáticamente las reseñas en este momento.</p>
+			{% if google_reviews_error %}
+			<p class="reviews-fallback-code">Código: {{ google_reviews_error }}</p>
+			{% endif %}
+			<div>
+				<a href="{{ google_reviews_fallback_url }}" target="_blank" rel="noopener" class="btn-alt-dark">Ver reseñas en Google Maps</a>
+			</div>
+		</div>
+	</section>
+	{% endif %}
+
+	<!-- Llamada final a la acción para llevar al usuario al inventario -->
+	<section class="cta">
+		<div>
+			<h3>¿Listo para estrenar coche?</h3>
+			<p>Explora el inventario y encuentra hoy mismo tu próxima conducción.</p>
+		</div>
+		<a href="/stock/" class="btn-main">Ir al inventario</a>
+	</section>
+</div>
+
+<!-- Datos serializados del carrusel para que JavaScript controle el hero dinámico -->
+{{ featured_hero_items|json_script:"featured-hero-data" }}
+
 {% endblock %}

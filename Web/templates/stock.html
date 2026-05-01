@@ -1,25 +1,221 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Inventario</h1>
-<div class="inventory-grid">
-{% for stock in stocks %}
-    <div class="stock-item">
-        
-        {% if stock.Vendido %}
-            <strong>[VENDIDO]</strong>
-        {% endif %}
-        <a href="{% url 'item_page' stock.id %}">
-        <h2>{{ stock.Titulo }}</h2>
-        <img src="{{ stock.Foto.url }}" alt="Foto del vehículo">
-        </a>
-        <p>{{ stock.Descrepción }}</p>
 
-        <p>Fecha de creación: {{ stock.Fecha_de_creación }}</p>
-        
+<!-- Contenedor principal de la página de inventario -->
+<div class="stock-shell">
+    <!-- Cabecera de la página con título, descripción y formulario de filtros -->
+    <header class="stock-top">
+        <h1>Coches en inventario</h1>
+        <p>Encuentra tu próximo vehículo con información clara y acceso rápido al detalle.</p>
+
+        <!-- Formulario GET: aplica filtros y ordenación sobre el listado de stock -->
+        <form method="get" class="stock-tools">
+            <!-- Botón que muestra u oculta los filtros avanzados -->
+            <button type="button" class="stock-toggle-btn" id="stock-toggle-btn" aria-expanded="false" aria-controls="stock-filters">
+                <span>Filtros avanzados</span>
+                <span class="stock-toggle-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false"><path d="M7 10l5 5 5-5z" fill="currentColor"/></svg>
+                </span>
+            </button>
+
+            <!-- Bloque desplegable con todos los filtros avanzados del catálogo -->
+            <div class="stock-filters-wrapper collapsed" id="stock-filters">
+                <div class="stock-filters-grid">
+                <!-- Campo de búsqueda libre por marca, modelo, título o versión -->
+                <div class="stock-filter-group stock-filter-group-span-2">
+                    <label for="stock-search">Búsqueda</label>
+                    <input id="stock-search" name="q" class="stock-search" type="search" value="{{ filters.q }}" placeholder="Buscar por marca, modelo, versión..." aria-label="Buscar vehículos">
+                </div>
+
+                <!-- Filtros numéricos de precio -->
+                <div class="stock-filter-group">
+                    <label for="min-price">Precio mínimo</label>
+                    <input id="min-price" name="min_price" class="stock-field" type="number" min="0" step="500" value="{{ filters.min_price }}" placeholder="Ej. 10000">
+                </div>
+
+                <div class="stock-filter-group">
+                    <label for="max-price">Precio máximo</label>
+                    <input id="max-price" name="max_price" class="stock-field" type="number" min="0" step="500" value="{{ filters.max_price }}" placeholder="Ej. 25000">
+                </div>
+
+                <!-- Filtro por disponibilidad del vehículo -->
+                <div class="stock-filter-group">
+                    <label for="status">Estado</label>
+                    <select id="status" name="status" class="stock-field">
+                        <option value="all"{% if filters.status == 'all' %} selected{% endif %}>Todos</option>
+                        <option value="available"{% if filters.status == 'available' %} selected{% endif %}>Disponibles</option>
+                        <option value="sold"{% if filters.status == 'sold' %} selected{% endif %}>Vendidos</option>
+                    </select>
+                </div>
+
+                <!-- Filtros por año del vehículo -->
+                <div class="stock-filter-group">
+                    <label for="min-year">Año mínimo</label>
+                    <input id="min-year" name="min_year" class="stock-field" type="number" min="1900" max="2099" value="{{ filters.min_year }}" placeholder="Ej. 2018">
+                </div>
+
+                <div class="stock-filter-group">
+                    <label for="max-year">Año máximo</label>
+                    <input id="max-year" name="max_year" class="stock-field" type="number" min="1900" max="2099" value="{{ filters.max_year }}" placeholder="Ej. 2025">
+                </div>
+
+                <!-- Filtro por kilometraje máximo -->
+                <div class="stock-filter-group">
+                    <label for="max-km">Kilómetros máximos</label>
+                    <input id="max-km" name="max_km" class="stock-field" type="number" min="0" step="1000" value="{{ filters.max_km }}" placeholder="Ej. 90000">
+                </div>
+
+                <!-- Filtros categóricos alimentados con opciones dinámicas desde la vista -->
+                <div class="stock-filter-group">
+                    <label for="fuel">Combustible</label>
+                    <select id="fuel" name="fuel" class="stock-field">
+                        <option value="">Todos</option>
+                        {% for option in fuel_options %}
+                        <option value="{{ option }}"{% if filters.fuel == option %} selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="stock-filter-group">
+                    <label for="transmission">Transmisión</label>
+                    <select id="transmission" name="transmission" class="stock-field">
+                        <option value="">Todas</option>
+                        {% for option in transmission_options %}
+                        <option value="{{ option }}"{% if filters.transmission == option %} selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="stock-filter-group">
+                    <label for="body">Carrocería</label>
+                    <select id="body" name="body" class="stock-field">
+                        <option value="">Todas</option>
+                        {% for option in body_options %}
+                        <option value="{{ option }}"{% if filters.body == option %} selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Acciones del formulario: aplicar o limpiar filtros -->
+            <div class="stock-actions-row">
+                <div class="stock-buttons">
+                    <button type="submit" class="stock-button">Aplicar filtros</button>
+                    <a href="/stock/" class="stock-reset">Limpiar filtros</a>
+                </div>
+            </div>
+
+            <!-- Selector de ordenación del inventario -->
+            <div class="stock-filter-group stock-filter-group-min-240">
+                <label for="stock-order">Ordenar por</label>
+                <select id="stock-order" name="order" class="stock-order" aria-label="Ordenar vehículos">
+                        <option value="newest"{% if filters.order == 'newest' %} selected{% endif %}>Más recientes</option>
+                        <option value="price-asc"{% if filters.order == 'price-asc' %} selected{% endif %}>Precio: menor a mayor</option>
+                        <option value="price-desc"{% if filters.order == 'price-desc' %} selected{% endif %}>Precio: mayor a menor</option>
+                        <option value="year-desc"{% if filters.order == 'year-desc' %} selected{% endif %}>Año: más nuevos</option>
+                        <option value="year-asc"{% if filters.order == 'year-asc' %} selected{% endif %}>Año: más antiguos</option>
+                        <option value="km-asc"{% if filters.order == 'km-asc' %} selected{% endif %}>Kilómetros: menor a mayor</option>
+                    </select>
+                </div>
+        </form>
+
+            <!-- Resumen del número de resultados y chips de filtros activos -->
+        <div class="stock-results">
+            <p>{{ results_count }} vehículo{% if results_count != 1 %}s{% endif %} encontrado{% if results_count != 1 %}s{% endif %}</p>
+            <div class="stock-active-filters">
+                {% if filters.q %}<span class="stock-chip">Búsqueda: {{ filters.q }}</span>{% endif %}
+                {% if filters.min_price %}<span class="stock-chip">Desde €{{ filters.min_price }}</span>{% endif %}
+                {% if filters.max_price %}<span class="stock-chip">Hasta €{{ filters.max_price }}</span>{% endif %}
+                {% if filters.min_year %}<span class="stock-chip">Año mín. {{ filters.min_year }}</span>{% endif %}
+                {% if filters.max_year %}<span class="stock-chip">Año máx. {{ filters.max_year }}</span>{% endif %}
+                {% if filters.max_km %}<span class="stock-chip">Hasta {{ filters.max_km }} km</span>{% endif %}
+                {% if filters.fuel %}<span class="stock-chip">{{ filters.fuel }}</span>{% endif %}
+                {% if filters.transmission %}<span class="stock-chip">{{ filters.transmission }}</span>{% endif %}
+                {% if filters.body %}<span class="stock-chip">{{ filters.body }}</span>{% endif %}
+                {% if filters.status == 'available' %}<span class="stock-chip">Solo disponibles</span>{% endif %}
+                {% if filters.status == 'sold' %}<span class="stock-chip">Solo vendidos</span>{% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Herramientas del comparador: el usuario puede seleccionar 2 o 3 vehículos -->
+    <div class="stock-compare-tools stock-compare-tools-offset">
+        <p class="stock-compare-info" id="compare-info">Selecciona 2 o 3 vehículos para comparar</p>
+        <a id="compare-button" class="stock-compare-btn disabled" href="/comparar/" aria-disabled="true">Comparar</a>
     </div>
-{% empty %}
-    <p>No hay elementos en el inventario.</p>
-{% endfor %}
+
+    {% if stocks %}
+    <!-- Listado de vehículos devueltos por la vista -->
+    <section class="stock-list">
+        {% for stock in stocks %}
+        <!-- Tarjeta individual de vehículo -->
+        <article class="vehicle-card">
+
+            <!-- Zona visual: checkbox de comparador, imagen principal y estado de venta -->
+            <div class="vehicle-media">
+                <label class="compare-check">
+                    <input class="compare-checkbox" type="checkbox" value="{{ stock.id }}" aria-label="Comparar {{ stock.Marca }} {{ stock.Modelo }}">
+                    Comparar
+                </label>
+
+                {% if stock.Foto %}
+                <img src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}">
+                {% else %}
+                Sin imagen
+                {% endif %}
+
+                {% if stock.Vendido %}
+                <span class="vehicle-status sold">VENDIDO</span>
+                {% else %}
+                <span class="vehicle-status available">DISPONIBLE</span>
+                {% endif %}
+            </div>
+
+            <!-- Zona de contenido: título, características, precio y acciones -->
+            <div class="vehicle-body">
+                <h2 class="vehicle-title">{{ stock.Marca }} {{ stock.Modelo }}</h2>
+                <p class="vehicle-sub">{{ stock.Año }} · {{ stock.Titulo }}</p>
+
+                <!-- Resumen rápido de especificaciones principales -->
+                <ul class="vehicle-meta">
+                    <li><span class="meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M19.14 12.94a7.43 7.43 0 0 0 .05-.94 7.43 7.43 0 0 0-.05-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.28 7.28 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.49.42l-.36 2.54a7.28 7.28 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.48a.5.5 0 0 0 .12.64l2.03 1.58a7.43 7.43 0 0 0-.05.94c0 .32.02.63.05.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.39 1.04.71 1.63.94l.36 2.54a.5.5 0 0 0 .49.42h3.8a.5.5 0 0 0 .49-.42l.36-2.54c.59-.23 1.13-.55 1.63-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"/></svg></span><span>Motor: {{ stock.Motor }}</span></li>
+                    <li><span class="meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M18 4c-4.5 0-7 2.57-7 7.5 0 2.73 1.5 5.08 3.71 6.24V20a1 1 0 1 1-2 0v-1.35A7.99 7.99 0 0 1 9 11.5C9 5.87 12.13 2 18 2c.55 0 1 .45 1 1s-.45 1-1 1zm-8 0c-.55 0-1 .45-1 1v4H7a2 2 0 0 0-2 2v3h2v6a1 1 0 1 0 2 0v-6h2v6a1 1 0 1 0 2 0V11a2 2 0 0 0-2-2H9V5c0-.55-.45-1-1-1z"/></svg></span><span>Combustible: {{ stock.Combustible }}</span></li>
+                    <li><span class="meta-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg></span><span>Transmisión: {{ stock.Transmisión }}</span></li>
+                </ul>
+
+                <!-- Tarjeta destacada del precio del vehículo -->
+                <div class="price-card">
+                    <span>Precio al contado</span>
+                    <p class="vehicle-price">€{{ stock.precio_formateado }}</p>
+                </div>
+
+                <!-- Acciones disponibles: favorito, detalle y edición para administradores -->
+                <div class="vehicle-actions">
+                    {% if user.is_authenticated %}
+                    <!-- Formulario POST para añadir o quitar el coche de favoritos -->
+                    <form method="post" action="{% url 'toggle_favorite' stock.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="favorite-button{% if stock.id in favorite_ids %} active{% endif %}">
+                            {% if stock.id in favorite_ids %}★ En favoritos{% else %}☆ Añadir a favoritos{% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a class="vehicle-link" href="{% url 'item_page' stock.id %}">Ver detalle</a>
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a class="vehicle-link secondary" href="{% url 'editstock' stock.id %}">Editar y gestionar fotos</a>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <!-- Estado vacío cuando no hay resultados en el inventario -->
+    <p class="stock-empty">No hay vehículos en el inventario en este momento.</p>
+    {% endif %}
 </div>
+
+
 {% endblock %}

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -46,7 +47,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sitemaps',
     'django.contrib.staticfiles',
+    'django_ckeditor_5',
     'Web',
 ]
 
@@ -72,6 +75,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'Web.context_processors.admin_unread_contact_messages',
             ],
         },
     },
@@ -83,12 +87,18 @@ WSGI_APPLICATION = 'autolux.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+#
+# Para desarrollo local usa SQLite (DATABASE_URL=sqlite:///db.sqlite3 en .env).
+# Para producción con PostgreSQL, define en .env:
+#   DATABASE_URL=postgres://usuario:contraseña@host:5432/nombre_db
 
+_db_url = os.getenv('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        _db_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -128,10 +138,64 @@ USE_TZ = True
 import os
 
 STATIC_URL = '/static/'
-STATIC_ROOT = "/var/www/autolux_static"
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = "/var/www/autolux_media"
+MEDIA_ROOT = BASE_DIR / 'media'
+
+CKEDITOR_5_UPLOAD_FILE_TYPES = ['jpeg', 'png', 'gif', 'bmp', 'webp', 'tiff']
+CKEDITOR_5_CONFIGS = {
+    'autolux_full': {
+        'language': 'es',
+        'toolbar': {
+            'items': [
+                'undo', 'redo', '|',
+                'heading', '|',
+                'fontFamily', 'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                'bold', 'italic', 'underline', 'strikethrough', 'removeFormat', '|',
+                'alignment', '|',
+                'numberedList', 'bulletedList', 'outdent', 'indent', '|',
+                'link', 'blockQuote', 'insertTable', 'imageUpload'
+            ],
+            'shouldNotGroupWhenFull': True
+        },
+        'image': {
+            'toolbar': [
+                'imageTextAlternative',
+                'imageStyle:inline',
+                'imageStyle:block',
+                'imageStyle:side'
+            ]
+        },
+        'table': {
+            'contentToolbar': ['tableColumn', 'tableRow', 'mergeTableCells']
+        },
+    }
+}
+
+VEHICLE_LOOKUP_API_URL = os.getenv('VEHICLE_LOOKUP_API_URL', '').strip()
+VEHICLE_LOOKUP_API_KEY = os.getenv('VEHICLE_LOOKUP_API_KEY', '').strip()
+VEHICLE_LOOKUP_API_KEY_HEADER = os.getenv('VEHICLE_LOOKUP_API_KEY_HEADER', 'X-API-Key').strip()
+VEHICLE_LOOKUP_API_KEY_PARAM = os.getenv('VEHICLE_LOOKUP_API_KEY_PARAM', '').strip()
+VEHICLE_LOOKUP_TIMEOUT = int(os.getenv('VEHICLE_LOOKUP_TIMEOUT', '12'))
+
+CARSXE_API_KEY = os.getenv('CARSXE_API_KEY', '').strip()
+CARSXE_DEFAULT_COUNTRY = os.getenv('CARSXE_DEFAULT_COUNTRY', 'ES').strip().upper()
+CARSXE_DEFAULT_STATE = os.getenv('CARSXE_DEFAULT_STATE', '').strip().upper()
+
+GOOGLE_PLACES_API_KEY = os.getenv('GOOGLE_PLACES_API_KEY', '').strip()
+GOOGLE_PLACE_ID = os.getenv('GOOGLE_PLACE_ID', '').strip()
+GOOGLE_PLACE_QUERY = os.getenv('GOOGLE_PLACE_QUERY', 'AutoLux ocasión Santurtzi').strip()
+GOOGLE_PLACE_LANGUAGE = os.getenv('GOOGLE_PLACE_LANGUAGE', 'es').strip()
+GOOGLE_PLACE_TIMEOUT = int(os.getenv('GOOGLE_PLACE_TIMEOUT', '8'))
+GOOGLE_PLACE_FALLBACK_URL = os.getenv('GOOGLE_PLACE_FALLBACK_URL', '').strip()
+
+TEST_DRIVE_HOLIDAYS = [
+    item.strip() for item in os.getenv('TEST_DRIVE_HOLIDAYS', '').split(',') if item.strip()
+]
+TEST_DRIVE_RECURRING_HOLIDAYS = [
+    item.strip() for item in os.getenv('TEST_DRIVE_RECURRING_HOLIDAYS', '01-01,01-06,05-01,08-15,10-12,11-01,12-06,12-08,12-25').split(',') if item.strip()
+]
 
 LOGIN_URL = '/login/'
 

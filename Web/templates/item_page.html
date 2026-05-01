@@ -2,55 +2,231 @@
 
 {% block content %}
 
-<div class="item-page">
-    <main class="item-main">
-        <h1>{{ stock.Titulo }}</h1>
-        <img src="{{ stock.Imagen.url }}" alt="{{ stock.Titulo }}" style="max-width:400px; height:auto;">
-        <p>{{ stock.Descrepción }}</p>
-        <p>Fecha de creación: {{ stock.Fecha_de_creación }}</p>
-    </main>
-    <aside class="sidemain">
-        <div class="price-box"> <span class="price-label">Precio</span>
-            <span class="price-value">{{ stock.precio_formateado }} €</span>
-        </div>
-        <div class="side-box">
-            <table>
-                <tr>
-                    <td class="t-label">Marca</td>
-                    <td class="t-value h6">{{ stock.Marca }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Modelo</td>
-                    <td class="t-value h6">{{ stock.Modelo }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Carrocería</td>
-                    <td class="t-value h6">{{ stock.Carrocería }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Kilometros</td>
-                    <td class="t-value h6">{{ stock.Kilometraje }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Año</td>
-                    <td class="t-value h6">{{ stock.Año }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Motor</td>
-                    <td class="t-value h6">{{ stock.Motor }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Combustible</td>
-                    <td class="t-value h6">{{ stock.Combustible }}</td>
-                </tr>
-                <tr>
-                    <td class="t-label">Color exterior</td>
-                    <td class="t-value h6">{{ stock.Color }}</td>
-                </tr>
+<!-- Contenedor general de la ficha de detalle del vehículo -->
+<div class="detail-shell">
+    <!-- Columna principal con información detallada del coche -->
+    <main class="detail-main">
+        <!-- Cabecera visual: título, imagen principal y galería -->
+        <article class="detail-card detail-hero">
+            <div class="detail-hero-top">
+                <div class="detail-title-wrap">
+                    <h1>{{ stock.Titulo }}</h1>
+                </div>
+                <!-- Botón de edición visible solo para usuarios con permisos de staff -->
+                {% if can_edit_stock %}
+                <a class="detail-edit-button" href="{% url 'editstock' stock.id %}">Editar vehículo</a>
+                {% endif %}
+            </div>
+            <p class="detail-sub">{{ stock.Marca }} {{ stock.Modelo }} · {{ stock.Año }}</p>
 
-            </table>
+            <!-- Imagen principal del vehículo -->
+            <div class="detail-photo">
+                {% if gallery_images %}
+                <img id="main-photo" src="{{ gallery_images.0 }}" alt="{{ stock.Titulo }}">
+                {% else %}
+                Sin imagen disponible
+                {% endif %}
+            </div>
+
+            <!-- Tira de miniaturas para cambiar la foto principal -->
+            {% if gallery_images|length > 1 %}
+            <div class="thumb-strip" id="thumb-strip">
+                {% for image_url in gallery_images %}
+                <button class="thumb-btn{% if forloop.first %} active{% endif %}" type="button" data-image="{{ image_url }}" aria-label="Imagen {{ forloop.counter }} del vehículo">
+                    <img src="{{ image_url }}" alt="Miniatura {{ forloop.counter }}">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </article>
+
+        <!-- Bloque de descripción o resumen comercial del vehículo -->
+        <article class="detail-card detail-section">
+            <h2>Resumen del vehículo</h2>
+            <p>
+                {% if stock.Descrepción %}
+                {{ stock.Descrepción|linebreaksbr }}
+                {% else %}
+                Vehículo revisado y listo para entregar. Consulta todos los detalles y disponibilidad con nuestro equipo.
+                {% endif %}
+            </p>
+        </article>
+
+        <!-- Ficha técnica resumida con los datos clave del vehículo -->
+        <article class="detail-card detail-section">
+            <h2>Ficha técnica</h2>
+            <ul class="spec-grid">
+                <li class="spec-item"><span>Marca</span><strong>{{ stock.Marca }}</strong></li>
+                <li class="spec-item"><span>Modelo</span><strong>{{ stock.Modelo }}</strong></li>
+                <li class="spec-item"><span>Año</span><strong>{{ stock.Año }}</strong></li>
+                <li class="spec-item"><span>Motor</span><strong>{{ stock.Motor }}</strong></li>
+                <li class="spec-item"><span>Transmisión</span><strong>{{ stock.Transmisión }}</strong></li>
+                <li class="spec-item"><span>Combustible</span><strong>{{ stock.Combustible }}</strong></li>
+                <li class="spec-item"><span>Color</span><strong>{{ stock.color }}</strong></li>
+            </ul>
+        </article>
+
+        <!-- Información de publicación de la ficha -->
+        <article class="detail-card published-card">
+            <p class="published-date"><strong>Fecha de publicación:</strong> {{ stock.Fecha_de_creación|date:'d/m/Y' }}</p>
+        </article>
+
+        <!-- Bloque para compartir el vehículo por WhatsApp o copiar el enlace -->
+        <article class="detail-card detail-section">
+            <div class="share-actions">
+                <p class="share-title">Compartir vehículo</p>
+                <a class="share-button" href="https://api.whatsapp.com/send?text={{ share_text|urlencode }}%20{{ share_url|urlencode }}" target="_blank" rel="noopener noreferrer">Compartir por WhatsApp</a>
+                <button type="button" class="share-button" id="copy-share-link" data-url="{{ share_url }}">Copiar enlace</button>
+                <p class="share-feedback" id="share-feedback" aria-live="polite"></p>
+            </div>
+        </article>
+
+        <!-- Recomendación de vehículos similares calculada en la vista -->
+        {% if similar_vehicles %}
+        <article class="detail-card detail-section similar-section">
+            <h2 class="similar-header">Vehículos similares</h2>
+            <div class="similar-grid">
+                {% for vehicle in similar_vehicles %}
+                <!-- Tarjeta resumida de un vehículo relacionado -->
+                <article class="similar-card">
+                    <div class="similar-photo">
+                        {% if vehicle.Foto %}
+                        <img src="{{ vehicle.Foto.url }}" alt="{{ vehicle.Marca }} {{ vehicle.Modelo }}">
+                        {% else %}
+                        Sin imagen
+                        {% endif %}
+                    </div>
+                    <div class="similar-body">
+                        <h3 class="similar-title">{{ vehicle.Marca }} {{ vehicle.Modelo }}</h3>
+                        <p class="similar-meta">{{ vehicle.Año }} · {{ vehicle.Combustible }} · {{ vehicle.Transmisión }}</p>
+                        <p class="similar-price">€{{ vehicle.precio_formateado }}</p>
+                        <a class="similar-link" href="{% url 'item_page' vehicle.id %}">Ver detalle</a>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </article>
+        {% endif %}
+    </main>
+
+    <!-- Barra lateral con precio, financiación, contacto y acciones rápidas -->
+    <aside class="detail-side">
+        <!-- Tarjeta destacada del precio y disponibilidad -->
+        <div class="price-panel">
+            <small>Precio al contado</small>
+            <h3>€{{ stock.precio_formateado }}</h3>
+            {% if stock.Vendido %}
+            <span class="state-pill sold">Vendido</span>
+            {% else %}
+            <span class="state-pill available">Disponible</span>
+            {% endif %}
+        </div>
+
+        <!-- Calculadora visual de financiación basada en precio, entrada, plazo e interés -->
+        <div class="finance-card" data-price="{{ stock.Precio|floatformat:2 }}">
+            <h3>Calculadora financiación</h3>
+            <div class="finance-grid">
+                <label for="fin-entry">Entrada (€)</label>
+                <input id="fin-entry" type="number" min="0" step="100" value="0">
+
+                <label for="fin-months">Plazo</label>
+                <select id="fin-months">
+                    <option value="24">24 meses</option>
+                    <option value="36">36 meses</option>
+                    <option value="48">48 meses</option>
+                    <option value="60" selected>60 meses</option>
+                    <option value="72">72 meses</option>
+                    <option value="84">84 meses</option>
+                </select>
+
+                <label for="fin-rate">Interés anual (%)</label>
+                <input id="fin-rate" type="number" min="0" step="0.1" value="6.9">
+            </div>
+
+            <div class="finance-result" id="fin-result">Cuota estimada: <strong>-- €/mes</strong></div>
+        </div>
+
+        <!-- Tarjeta de contacto y solicitud de prueba de conducción -->
+        <div class="contact-card">
+            <h3>Solicitar prueba</h3>
+            <p>¿Te interesa este vehículo?</p>
+            <p>Reserva una prueba y te contactamos con disponibilidad.</p>
+
+            <!-- Formulario principal para reservar una prueba -->
+            <form class="test-drive-form" method="post" action="" data-slots-url="{% url 'test_drive_available_slots' stock.id %}">
+                {% csrf_token %}
+                <label for="td-name">Nombre *</label>
+                <input id="td-name" name="name" type="text" required value="{{ test_drive_form_data.name|default:'' }}">
+
+                <label for="td-email">Email *</label>
+                <input id="td-email" name="email" type="email" required value="{{ test_drive_form_data.email|default:'' }}">
+
+                <label for="td-phone">Teléfono</label>
+                <input id="td-phone" name="phone" type="text" value="{{ test_drive_form_data.phone|default:'' }}">
+
+                <label for="td-day">Fecha preferida *</label>
+                <input id="td-day" name="preferred_day" type="date" required value="{{ test_drive_form_data.preferred_day|default:'' }}">
+
+                <label for="td-time">Hora preferida *</label>
+                <select id="td-time" name="preferred_time" required data-selected="{{ test_drive_form_data.preferred_time|default:'' }}">
+                    <option value="">Selecciona una fecha primero</option>
+                </select>
+                <p class="test-drive-help" id="td-help">Horario comercial: L-V 09:30–20:00 · Sáb 10:00–16:00 · Domingo y festivos cerrado.</p>
+
+                <label for="td-message">Mensaje</label>
+                <textarea id="td-message" name="message" placeholder="Indica tus dudas o disponibilidad">{{ test_drive_form_data.message|default:'' }}</textarea>
+
+                <button type="submit" class="test-drive-submit">Solicitar prueba</button>
+            </form>
+
+            <!-- Botón de favoritos disponible solo para usuarios autenticados -->
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'toggle_favorite' stock.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button type="submit" class="favorite-toggle{% if is_favorite %} active{% endif %}">
+                    {% if is_favorite %}★ En favoritos{% else %}☆ Añadir a favoritos{% endif %}
+                </button>
+            </form>
+            {% endif %}
+
+            <!-- Acción rápida de contacto por WhatsApp -->
+            <a class="contact-button" href="https://api.whatsapp.com/send?phone=34603957981" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+
+            <!-- Datos estáticos de contacto del negocio -->
+            <ul class="contact-list">
+                <li>
+                    <span class="contact-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/>
+                        </svg>
+                    </span>
+                    <span><strong>Dirección</strong>El Crucero Auzoa, 35, 48550 Muskiz, Biscay</span>
+                </li>
+                <li>
+                    <span class="contact-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.11.37 2.3.56 3.58.56a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.28.19 2.47.56 3.58a1 1 0 0 1-.25 1.01l-2.19 2.2z"/>
+                        </svg>
+                    </span>
+                    <span><strong>Teléfono</strong>+34 603 957 981</span>
+                </li>
+                <li>
+                    <span class="contact-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                            <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                        </svg>
+                    </span>
+                    <span><strong>Email</strong>contacto@autoluxocasion.com</span>
+                </li>
+            </ul>
+
+            <!-- Navegación de retorno al listado general -->
+            <a class="back-button" href="/stock/">Volver al inventario</a>
         </div>
     </aside>
 </div>
+
+
 
 {% endblock %}

@@ -4,54 +4,223 @@
 <html lang="ES">
 
 <head>
+    <!-- Metadatos básicos y configuración responsive -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Metadatos SEO dinámicos rellenados desde las vistas -->
+    <title>{{ seo_title|default:'Autolux Ocasión | Coches de ocasión en Muskiz' }}</title>
+    <meta name="description" content="{{ seo_description|default:'Autolux Ocasión, compraventa de coches de ocasión en Muskiz con inventario actualizado y atención cercana.' }}">
+    <meta name="robots" content="{{ seo_robots|default:'index,follow' }}">
+
+    <!-- Metadatos Open Graph para compartir en redes sociales -->
+    <meta property="og:locale" content="es_ES">
+    <meta property="og:site_name" content="{{ seo_site_name|default:'Autolux Ocasión' }}">
+    <meta property="og:title" content="{{ seo_title|default:'Autolux Ocasión | Coches de ocasión en Muskiz' }}">
+    <meta property="og:description" content="{{ seo_description|default:'Autolux Ocasión, compraventa de coches de ocasión en Muskiz con inventario actualizado y atención cercana.' }}">
+    <meta property="og:type" content="{{ seo_og_type|default:'website' }}">
+    {% if seo_og_url %}
+    <meta property="og:url" content="{{ seo_og_url }}">
+    {% endif %}
+
+    <!-- Metadatos para Twitter/X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ seo_title|default:'Autolux Ocasión | Coches de ocasión en Muskiz' }}">
+    <meta name="twitter:description" content="{{ seo_description|default:'Autolux Ocasión, compraventa de coches de ocasión en Muskiz con inventario actualizado y atención cercana.' }}">
+
+    <!-- URL canónica y recursos de imagen para SEO -->
+    {% if seo_canonical_url %}
+    <link rel="canonical" href="{{ seo_canonical_url }}">
+    {% endif %}
+    {% if seo_image_url %}
+    <meta property="og:image" content="{{ seo_image_url }}">
+    <meta name="twitter:image" content="{{ seo_image_url }}">
+    {% endif %}
+
+    <!-- Recursos globales del sitio -->
     <link rel="icon" type="image/png" href="{% static 'img/favicon-32x32.png' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <script src="https://kit.fontawesome.com/b4c1716762.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <title>Autolux</title>
+
+    <!-- Datos estructurados JSON-LD embebidos para buscadores -->
+    {% if seo_json_ld %}
+    {{ seo_json_ld|json_script:"seo-json-ld-data" }}
+    
+    {% endif %}
+    
 </head>
 
 <body>
 
-    <nav>
-        <ul class="menu">
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/stock/">Inventario</a></li>
-            {% if not user.is_authenticated %}
-           <li class="item button secondary"><a href="/signup/">Crear Cuenta</a></li>
-             <li class="item button"><a href="/login/">Iniciar Sesión</a></li>
-            {% endif %}
-            {% if user.is_authenticated %}
-            <li><a href="/stock/add/">Añadir vehículo</a></li>
-            <li class="item button"><a href="/logout/">Cerrar Sesión</a></li>
-            {% endif %}
-            <li class="toggle"><a href="#"><i class="fa-solid fa-bars"></i></a></li>
-        </ul>
+    <!-- Cabecera principal con la navegación global -->
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Principal">
+            <!-- Marca / logotipo del sitio -->
+            <a href="/" class="site-brand">Auto<span>lux</span></a>
+
+            <!-- Botón para abrir/cerrar el menú en móviles -->
+            <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-menu">
+                <span class="icon icon-menu" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                        <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+                    </svg>
+                </span>
+                <span class="icon icon-close" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                        <path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.41L10.59 13.41 4.29 19.7 2.88 18.29 9.17 12 2.88 5.71 4.29 4.3l6.3 6.29 6.29-6.3z"/>
+                    </svg>
+                </span>
+            </button>
+
+            <!-- Menú principal y acciones del usuario -->
+            <div id="nav-menu" class="nav-menu">
+                <!-- Enlaces principales de navegación -->
+                <ul class="nav-links">
+                    <li><a class="nav-link{% if request.path == '/' %} active{% endif %}" href="/">Inicio</a></li>
+                    <li><a class="nav-link{% if '/stock/' in request.path and request.path != '/stock/add/' %} active{% endif %}" href="/stock/">Inventario</a></li>
+                    <li><a class="nav-link{% if request.path == '/contacto/' %} active{% endif %}" href="/contacto/">Contacto</a></li>
+                    {% if user.is_authenticated %}
+                    <li>
+                        <!-- Acceso a favoritos con badge de cantidad -->
+                        <a class="nav-link nav-link-with-badge{% if request.path == '/favoritos/' %} active{% endif %}" href="/favoritos/">
+                            Favoritos
+                            {% if favorite_count > 0 %}
+                            <span class="nav-badge">{{ favorite_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% if user.is_staff %}
+                    <!-- Acciones reservadas al personal administrador -->
+                    <li><a class="nav-link{% if request.path == '/stock/add/' %} active{% endif %}" href="/stock/add/">Añadir vehículo</a></li>
+                    <li>
+                        <a class="nav-link nav-link-with-badge{% if request.path == '/mensajes-contacto/' %} active{% endif %}" href="/mensajes-contacto/">
+                            Mensajes
+                            {% if admin_unread_messages_count > 0 %}
+                            <span class="nav-badge">{{ admin_unread_messages_count }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endif %}
+                </ul>
+
+                <!-- Acciones de autenticación -->
+                <ul class="nav-actions">
+                    {% if not user.is_authenticated %}
+                    <li><a class="nav-action{% if request.path == '/signup/' %} active{% endif %}" href="/signup/">Crear cuenta</a></li>
+                    <li><a class="nav-action primary{% if request.path == '/login/' %} active{% endif %}" href="/login/">Iniciar sesión</a></li>
+                    {% else %}
+                    <li>
+                        <!-- Formulario POST para cerrar sesión de forma segura -->
+                        <form method="post" action="/logout/" class="nav-action-form">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-action nav-action-btn">Cerrar sesión</button>
+                        </form>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Migas de pan opcionales para mejorar navegación y SEO -->
+    {% if breadcrumb_items %}
+    <nav class="site-breadcrumbs" aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+            {% for item in breadcrumb_items %}
+            <li>
+                {% if item.url and not item.is_current %}
+                <a class="breadcrumb-link" href="{{ item.url }}">{{ item.label }}</a>
+                {% else %}
+                <span class="breadcrumb-current" aria-current="page">{{ item.label }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
     </nav>
+    {% endif %}
 
+    <!-- Mensajes flash del framework de mensajes de Django -->
+    {% if messages %}
+    <div class="flash-stack" id="flash-stack" aria-live="polite" aria-atomic="true">
+        {% for message in messages %}
+        <div class="flash-item {% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}" data-flash>
+            <p class="flash-text">{{ message }}</p>
+            <button type="button" class="flash-close" data-flash-close aria-label="Cerrar aviso">✕</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-
-    <nav>
-        <ul>
-            <li><a href="/">Inicio</a></li>
-            <li><a href="/stock/">Inventario</a></li>
-            {% if not user.is_authenticated %}
-            <li><a href="/signup/">Crear Cuenta</a></li>
-            <li><a href="/login/">Iniciar Sesión</a></li>
-            {% endif %}
-            {% if user.is_authenticated %}
-            <li><a href="/stock/add/">Añadir vehículo</a></li>
-            <li><a href="/logout/">Cerrar Sesión</a></li>
-            {% endif %}
-
-        </ul>
-    </nav>
-    <section>
+    <!-- Bloque principal donde cada plantilla hija inserta su contenido -->
+    <section class="page-content">
         {% block content %}
         {% endblock %}
     </section>
+
+    <!-- Pie de página global del sitio -->
+    <footer class="site-footer">
+        <div class="footer-shell">
+            <div>
+                <!-- Presentación breve de la marca -->
+                <p class="footer-brand">Auto<span>lux</span></p>
+                <p class="footer-copy">Compraventa de vehículos de ocasión con atención cercana, transparencia y acompañamiento en cada paso.</p>
+            </div>
+
+            <div>
+                <!-- Datos de contacto mostrados en el footer -->
+                <h3 class="footer-title">Contacto</h3>
+                <ul class="footer-contact-list">
+                    <li class="footer-contact-item">
+                        <span class="footer-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/>
+                            </svg>
+                        </span>
+                        <span><strong>Dirección</strong>El Crucero Auzoa, 35, 48550 Muskiz, Biscay</span>
+                    </li>
+                    <li class="footer-contact-item">
+                        <span class="footer-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.11.37 2.3.56 3.58.56a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.28.19 2.47.56 3.58a1 1 0 0 1-.25 1.01l-2.19 2.2z"/>
+                            </svg>
+                        </span>
+                        <span><strong>Teléfono</strong><a class="footer-link" href="tel:+34603957981">+34 603 957 981</a></span>
+                    </li>
+                    <li class="footer-contact-item">
+                        <span class="footer-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                                <path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/>
+                            </svg>
+                        </span>
+                        <span><strong>Email</strong><a class="footer-link" href="mailto:contacto@autoluxocasion.com">contacto@autoluxocasion.com</a></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <!-- Enlaces rápidos de navegación secundaria -->
+                <h3 class="footer-title">Acceso rápido</h3>
+                <ul class="footer-links">
+                    <li><a class="footer-link" href="/">Inicio</a></li>
+                    <li><a class="footer-link" href="/stock/">Inventario</a></li>
+                    <li><a class="footer-link" href="/contacto/">Contacto</a></li>
+                    <li><a class="footer-whatsapp" href="https://api.whatsapp.com/send?phone=34603957981" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Franja inferior legal/copyright -->
+        <div class="footer-bottom">
+            <div class="footer-bottom-shell">
+                <p class="footer-meta">© 2026 Autolux. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript global del proyecto -->
+    <script src="{% static 'js/scripts.js' %}"></script>
 </body>
 
 </html>

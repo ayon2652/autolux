@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Contenedor principal del panel de edición de un vehículo -->
+<div class="edit-shell">
+    <!-- Resumen rápido del vehículo para dar contexto antes de editar -->
+    <div class="edit-summary">
+        <div class="summary-card">
+            <span>Vehículo</span>
+            <strong>{{ stock.Marca }} {{ stock.Modelo }}</strong>
+        </div>
+        <div class="summary-card">
+            <span>Año</span>
+            <strong>{{ stock.Año }}</strong>
+        </div>
+        <div class="summary-card">
+            <span>Precio actual</span>
+            <strong>€{{ stock.precio_formateado }}</strong>
+        </div>
+    </div>
+
+    <!-- Tarjeta principal con el formulario completo de edición -->
+    <div class="edit-card">
+        <div class="edit-head">
+            <h1>Editar vehículo</h1>
+            <p>Actualiza la ficha comercial, revisa los datos técnicos y reorganiza la galería desde un único panel.</p>
+        </div>
+
+        <!-- Formulario POST con soporte para subida de archivos -->
+        <form method="post" enctype="multipart/form-data" class="edit-body">
+            {% csrf_token %}
+            <!-- Recursos necesarios para CKEditor y otros widgets del formulario -->
+            {{ form.media }}
+
+            <!-- Nota visual de ayuda para el usuario administrador -->
+            <div class="page-note">
+                <strong>Consejo:</strong> mantén el título, la descripción y las imágenes bien actualizadas para que la ficha se vea más profesional y convierta mejor.
+            </div>
+
+            <!-- Sección principal: datos comerciales más visibles -->
+            <section class="edit-section">
+                <div class="edit-section-header">
+                    <h2 class="edit-section-title">Información principal</h2>
+                    <p class="edit-section-text">Edita los datos más visibles del anuncio, incluida la portada y la descripción comercial del vehículo.</p>
+                </div>
+
+                <!-- Grid con título, descripción, precio e imagen principal -->
+                <div class="edit-grid">
+                    <div class="field span-full">
+                        <label for="{{ form.Titulo.id_for_label }}">{{ form.Titulo.label }}</label>
+                        {{ form.Titulo }}
+                        {% if form.Titulo.errors %}<div class="field-error">{{ form.Titulo.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="field span-full">
+                        <label for="{{ form.Descrepción.id_for_label }}">{{ form.Descrepción.label }}</label>
+                        {{ form.Descrepción }}
+                        {% if form.Descrepción.help_text %}<p class="field-help">{{ form.Descrepción.help_text }}</p>{% endif %}
+                        {% if form.Descrepción.errors %}<div class="field-error">{{ form.Descrepción.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="field price-field">
+                        <label for="{{ form.Precio.id_for_label }}">{{ form.Precio.label }}</label>
+                        {{ form.Precio }}
+                        {% if form.Precio.errors %}<div class="field-error">{{ form.Precio.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="field file-field">
+                        <label for="{{ form.Foto.id_for_label }}">{{ form.Foto.label }}</label>
+                        {{ form.Foto }}
+                        {% if form.Foto.help_text %}<p class="field-help">{{ form.Foto.help_text }}</p>{% endif %}
+                        {% if form.Foto.errors %}<div class="field-error">{{ form.Foto.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección con el resto de campos técnicos y administrativos -->
+            <section class="edit-section">
+                <div class="edit-section-header">
+                    <h2 class="edit-section-title">Datos del vehículo</h2>
+                    <p class="edit-section-text">Completa la información técnica y administrativa para mostrar una ficha más clara y útil.</p>
+                </div>
+
+                <!-- Se recorren dinámicamente los campos del formulario excepto los ya mostrados arriba -->
+                <div class="edit-grid">
+                    {% for field in form.visible_fields %}
+                    {% if field.name != 'Titulo' and field.name != 'Descrepción' and field.name != 'Precio' and field.name != 'Foto' %}
+                    <div class="field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                        {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Bloque de gestión de la galería existente -->
+            <div class="gallery-block">
+                <h2>Galería actual</h2>
+                <p class="gallery-note">Reordena las imágenes arrastrando las tarjetas o usando los botones de subir y bajar. También puedes marcar las fotos que quieras eliminar.</p>
+                {% if existing_images %}
+                <!-- Listado ordenable de imágenes ya guardadas -->
+                <div class="gallery-list" id="gallery-list-sortable">
+                    {% for image in existing_images %}
+                    <!-- Tarjeta individual de imagen con orden y opción de borrado -->
+                    <div class="gallery-item" draggable="true" data-image-id="{{ image.id }}">
+                        <img src="{{ image.image.url }}" alt="Foto {{ forloop.counter }}">
+                        <div class="gallery-controls">
+                            <!-- Botones auxiliares para mover imágenes arriba o abajo -->
+                            <div class="move-controls">
+                                <button type="button" class="move-btn move-up">Subir</button>
+                                <button type="button" class="move-btn move-down">Bajar</button>
+                            </div>
+
+                            <!-- Campo manual de orden para cada imagen -->
+                            <div class="field">
+                                <label for="order_image_{{ image.id }}">Orden</label>
+                                <input type="number" min="0" name="order_image_{{ image.id }}" id="order_image_{{ image.id }}" value="{{ image.orden }}">
+                            </div>
+
+                            <!-- Opción para eliminar una imagen existente -->
+                            <label class="checkbox-row" for="delete_image_{{ image.id }}">
+                                <input type="checkbox" name="delete_image_{{ image.id }}" id="delete_image_{{ image.id }}">
+                                Eliminar esta foto
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>No hay fotos adicionales en la galería.</p>
+                {% endif %}
+            </div>
+
+            <!-- Sección para subir nuevas imágenes a la galería -->
+            <section class="edit-section">
+                <div class="edit-section-header">
+                    <h2 class="edit-section-title">Añadir nuevas fotos a la galería</h2>
+                    <p class="edit-section-text">Sube nuevas imágenes para complementar la galería actual del vehículo.</p>
+                </div>
+
+                <!-- Campo de carga múltiple para nuevas fotos -->
+                <div class="field span-2">
+                    <label for="{{ form.Fotos.id_for_label }}">{{ form.Fotos.label }}</label>
+                    {{ form.Fotos }}
+                    {% if form.Fotos.help_text %}<p class="field-help">{{ form.Fotos.help_text }}</p>{% endif %}
+                    {% if form.Fotos.errors %}<div class="field-error">{{ form.Fotos.errors }}</div>{% endif %}
+                </div>
+            </section>
+
+            <!-- Barra final de acciones de gestión del vehículo -->
+            <div class="actions">
+                <!-- Estado actual del vehículo en venta -->
+                {% if stock.Vendido %}
+                <p class="sale-status-note sold">Estado actual: Vendido</p>
+                {% else %}
+                <p class="sale-status-note available">Estado actual: Disponible</p>
+                {% endif %}
+
+                <!-- Acción para cambiar el estado de venta -->
+                {% if stock.Vendido %}
+                <button type="submit" name="toggle_sale_status" value="1" class="btn sale-toggle mark-available">Volver a poner en venta</button>
+                {% else %}
+                <button type="submit" name="toggle_sale_status" value="1" class="btn sale-toggle mark-sold">Marcar como vendido</button>
+                {% endif %}
+
+                <!-- Acción destructiva para eliminar completamente la ficha -->
+                <button type="submit" name="delete_stock" value="1" class="btn danger" data-confirm="¿Seguro que quieres eliminar esta ficha? Esta acción no se puede deshacer.">Eliminar ficha</button>
+
+                <!-- Navegación o guardado final -->
+                <a href="{% url 'item_page' stock.id %}" class="btn secondary">Cancelar</a>
+                <button type="submit" class="btn primary">Guardar cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}

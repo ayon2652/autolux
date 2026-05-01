@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<div class="admin-panel">
+    <div class="admin-header">
+        <h1 class="title-with-icon">
+            <span class="ui-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </span>
+            Mensajes de Contacto
+        </h1>
+        <div class="admin-stats">
+            <span class="stat-badge">Total: {{ messages_list.count }}</span>
+            {% if unread_count > 0 %}
+            <span id="admin-unread-badge" class="stat-badge stat-badge-unread">Nuevos: {{ unread_count }}</span>
+            {% endif %}
+            <span class="stat-badge stat-badge-tests">Pruebas: {{ test_drive_requests.count }}</span>
+            {% if unread_test_drive_count > 0 %}
+            <span class="stat-badge stat-badge-tests-unread">Pruebas nuevas: {{ unread_test_drive_count }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages_list %}
+    <div class="admin-actions-wrap">
+        <form method="post" class="form-inline">
+            {% csrf_token %}
+            {% if unread_count > 0 %}
+            <button type="submit" name="mark_all_read" class="admin-btn primary" data-confirm="¿Marcar todos como leídos?">
+                <span class="ui-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false"><path d="M9 16.17 4.83 12 3.41 13.41 9 19l12-12-1.41-1.41z"/></svg>
+                </span>
+                   Marcar todos como leídos
+            </button>
+            {% endif %}
+        </form>
+    </div>
+
+    <table class="messages-table">
+        <thead>
+            <tr>
+                <th>De</th>
+                <th>Asunto</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for msg in messages_list %}
+            <tr id="message-row-{{ msg.id }}" class="message-row {% if not msg.is_read %}unread{% endif %}">
+                <td>
+                    <div class="message-from">
+                        <span class="message-name">{{ msg.name }}</span>
+                        <span class="message-email">{{ msg.email }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="subject-cell">
+                        {{ msg.subject }}
+                        {% if not msg.is_read %}<span id="message-unread-badge-{{ msg.id }}" class="unread-badge">NUEVA</span>{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <span class="message-date">{{ msg.created_at|date:"d/m/Y H:i" }}</span>
+                </td>
+                <td>
+                    <div class="message-actions">
+                        {% if not msg.is_read %}
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="mark_read_message" value="{{ msg.id }}">
+                            <button type="submit" class="action-btn mark-read icon-only" title="Marcar como leída" aria-label="Marcar como leída">
+                                <span class="ui-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M12 4 2.5 9l9.5 5 9.5-5L12 4zm0 12L4 11.8V19h16v-7.2L12 16z"/>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <button type="button" class="action-btn view" data-open-message data-message-id="{{ msg.id }}" data-name="{{ msg.name }}" data-email="{{ msg.email }}" data-phone="{{ msg.phone }}" data-subject="{{ msg.subject }}" data-message="{{ msg.message }}" data-is-unread="{{ msg.is_read|yesno:'false,true' }}">
+                            <span class="ui-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false"><path d="M12 6c-5 0-9.27 3.11-11 7.5C2.73 17.89 7 21 12 21s9.27-3.11 11-7.5C21.27 9.11 17 6 12 6zm0 12a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>
+                            </span>
+                               Ver
+                        </button>
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_message" value="{{ msg.id }}">
+                            <button type="submit" class="action-btn delete icon-only" data-confirm="¿Estás seguro de eliminar este mensaje?" title="Eliminar mensaje" aria-label="Eliminar mensaje">
+                                <span class="ui-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false"><path d="M6 7h12l-1 14H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z"/></svg>
+                                </span>
+                               </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M20 6H4a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm0 2v.01L12 13 4 8.01V8h16zM4 16V10.3l8 4.7 8-4.7V16H4z"/></svg>
+        </div>
+        <h2 class="empty-state-title">Sin mensajes</h2>
+        <p class="empty-state-text">No hay mensajes de contacto aún. Cuando alguien envíe un formulario, aparecerá aquí.</p>
+    </div>
+    {% endif %}
+
+    <h2 class="admin-section-title">Solicitudes de prueba</h2>
+    {% if test_drive_requests %}
+    <div class="admin-actions-wrap-small">
+        <form method="post" class="form-inline">
+            {% csrf_token %}
+            {% if unread_test_drive_count > 0 %}
+            <button type="submit" name="mark_all_test_drive_read" class="admin-btn primary" data-confirm="¿Marcar todas las solicitudes de prueba como leídas?">
+                <span class="ui-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false"><path d="M9 16.17 4.83 12 3.41 13.41 9 19l12-12-1.41-1.41z"/></svg>
+                </span>
+                   Marcar solicitudes como leídas
+            </button>
+            {% endif %}
+        </form>
+    </div>
+    <table class="messages-table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Vehículo</th>
+                <th>Preferencia</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in test_drive_requests %}
+            <tr>
+                <td>
+                    <div class="message-from">
+                        <span class="message-name">{{ req.name }}</span>
+                        <span class="message-email">{{ req.email }}{% if req.phone %} · {{ req.phone }}{% endif %}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="subject-cell">
+                        <a href="{% url 'contact_messages_admin' %}?open_test_drive={{ req.id }}" class="vehicle-link">
+                            {{ req.stock.Titulo }}
+                        </a>
+                        {% if not req.is_read %}<span class="unread-badge">NUEVA</span>{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <span class="message-date">
+                        {% if req.preferred_datetime %}
+                        {{ req.preferred_datetime|date:"d/m/Y H:i" }}
+                        {% else %}
+                        {{ req.preferred_date|default:'Sin preferencia' }}
+                        {% endif %}
+                    </span>
+                    {% if req.message %}
+                    <div class="request-message-preview">{{ req.message }}</div>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="message-date">{{ req.created_at|date:"d/m/Y H:i" }}</span>
+                </td>
+                <td>
+                    <div class="message-actions">
+                        {% if not req.is_read %}
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="mark_read_test_drive" value="{{ req.id }}">
+                            <button type="submit" class="action-btn mark-read icon-only" title="Marcar solicitud como leída" aria-label="Marcar solicitud como leída">
+                                <span class="ui-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M12 4 2.5 9l9.5 5 9.5-5L12 4zm0 12L4 11.8V19h16v-7.2L12 16z"/>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="mark_unread_test_drive" value="{{ req.id }}">
+                            <button type="submit" class="action-btn mark-unread icon-only" title="Marcar solicitud como no leída" aria-label="Marcar solicitud como no leída">
+                                <span class="ui-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false">
+                                        <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7zm2 .8v.2l6 4 6-4v-.2H6z"/>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <form method="post" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="delete_test_drive" value="{{ req.id }}">
+                            <button type="submit" class="action-btn delete icon-only" data-confirm="¿Eliminar esta solicitud de prueba?" title="Eliminar solicitud" aria-label="Eliminar solicitud">
+                                <span class="ui-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" focusable="false"><path d="M6 7h12l-1 14H7L6 7zm3-4h6l1 2h4v2H4V5h4l1-2z"/></svg>
+                                </span>
+                               </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3 1 9l11 6 9-4.91V17h2V9L12 3zm0 9.74L5.21 9 12 5.26 18.79 9 12 12.74zM5 12.3l-2 1.09L12 18.26l9-4.87-2-1.09L12 16l-7-3.7z"/></svg>
+        </div>
+        <h2 class="empty-state-title">Sin solicitudes de prueba</h2>
+        <p class="empty-state-text">Cuando un cliente solicite una prueba desde la ficha de un vehículo aparecerá aquí.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para ver mensaje -->
+<div id="messageModal" class="modal">
+    <div class="modal-content modal-content-relative">
+        <button type="button" class="modal-close" data-close-message>&times;</button>
+        
+        <div class="modal-header">
+            <p class="modal-title" id="modalSubject">Asunto</p>
+            <p class="modal-subtitle" id="modalFrom">De: nombre</p>
+        </div>
+
+        <div class="modal-section">
+            <p class="modal-section-title">Datos de contacto</p>
+            <div class="modal-contact-grid">
+                <div>
+                    <p class="modal-contact-label">Email</p>
+                    <div class="modal-field" id="modalEmail">correo@ejemplo.com</div>
+                </div>
+                <div>
+                    <p class="modal-contact-label">Teléfono</p>
+                    <div class="modal-field" id="modalPhone">No proporcionado</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <p class="modal-section-title">Mensaje</p>
+            <div class="modal-field modal-message-body" id="modalMessage">
+                Contenido del mensaje aquí...
+            </div>
+        </div>
+
+        <div class="modal-actions">
+               <button type="button" class="modal-btn secondary" data-close-message>Cerrar</button>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}

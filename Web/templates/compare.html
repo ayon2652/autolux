@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Contenedor principal del comparador de vehículos -->
+<div class="compare-shell">
+    <!-- Cabecera de la página de comparación -->
+    <header class="compare-top">
+        <h1>Comparador de vehículos</h1>
+        <p>Comparación rápida entre los vehículos seleccionados.</p>
+    </header>
+
+    <!-- Envoltorio de la tabla para facilitar el scroll horizontal en pantallas pequeñas -->
+    <div class="compare-table-wrap">
+        <!-- Tabla comparativa principal -->
+        <table class="compare-table">
+            <thead>
+                <tr>
+                    <!-- Primera columna fija con el nombre de la característica -->
+                    <th class="compare-key">Característica</th>
+                    {% for stock in stocks %}
+                    <!-- Cabecera de cada vehículo seleccionado -->
+                    <th class="compare-vehicle">
+                        {% if stock.Foto %}
+                        <img class="compare-photo" src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}">
+                        {% endif %}
+                        <p class="compare-title">{{ stock.Marca }} {{ stock.Modelo }}</p>
+                        <p class="compare-sub">{{ stock.Titulo }}</p>
+                        <a class="compare-link" href="{% url 'item_page' stock.id %}">Ver detalle</a>
+                    </th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Comparación de precio con resalte del mejor valor -->
+                <tr>
+                    <td class="compare-key">Precio</td>
+                    {% for stock in stocks %}
+                    <td>
+                        €{{ stock.precio_formateado }}
+                        {% if stock.id in highlights.price %}
+                        <span class="compare-best">Mejor precio</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Comparación del año para destacar el vehículo más nuevo -->
+                <tr>
+                    <td class="compare-key">Año</td>
+                    {% for stock in stocks %}
+                    <td>
+                        {{ stock.Año }}
+                        {% if stock.id in highlights.year %}
+                        <span class="compare-best">Más nuevo</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Comparación de kilometraje, destacando el de menor uso -->
+                <tr>
+                    <td class="compare-key">Kilómetros</td>
+                    {% for stock in stocks %}
+                    <td>
+                        {% if stock.Kilometros %}
+                        {{ stock.Kilometros }} km
+                        {% if stock.id in highlights.km %}
+                        <span class="compare-best">Menos km</span>
+                        {% endif %}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Comparación de datos técnicos básicos -->
+                <tr>
+                    <td class="compare-key">Motor</td>
+                    {% for stock in stocks %}
+                    <td>{{ stock.Motor }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="compare-key">Combustible</td>
+                    {% for stock in stocks %}
+                    <td>{{ stock.Combustible }}</td>
+                    {% endfor %}
+                </tr>
+                <tr>
+                    <td class="compare-key">Transmisión</td>
+                    {% for stock in stocks %}
+                    <td>{{ stock.Transmisión }}</td>
+                    {% endfor %}
+                </tr>
+
+                <!-- Estado comercial del vehículo -->
+                <tr>
+                    <td class="compare-key">Estado</td>
+                    {% for stock in stocks %}
+                    <td>{% if stock.Vendido %}Vendido{% else %}Disponible{% endif %}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Contenedor principal de la página de favoritos -->
+<div class="fav-shell">
+    <!-- Cabecera con explicación y acceso al comparador de favoritos -->
+    <header class="fav-top">
+        <h1>Mis favoritos</h1>
+        <p>Aquí tienes los vehículos que guardaste para revisarlos más tarde.</p>
+
+        <!-- Herramientas del comparador: permite comparar entre 2 y 3 coches guardados -->
+        <div class="fav-tools">
+            <p class="fav-compare-info" id="fav-compare-info">Selecciona 2 o 3 favoritos para comparar</p>
+            <a id="fav-compare-btn" class="fav-compare-btn disabled" href="/comparar/" aria-disabled="true">Comparar favoritos</a>
+        </div>
+    </header>
+
+    {% if stocks %}
+    <!-- Listado de vehículos que el usuario ha marcado como favoritos -->
+    <section class="fav-list">
+        {% for stock in stocks %}
+        <!-- Tarjeta individual de favorito -->
+        <article class="fav-card">
+            <!-- Zona visual con checkbox para comparar e imagen principal -->
+            <div class="fav-media">
+                <label class="compare-check">
+                    <input class="compare-checkbox" type="checkbox" value="{{ stock.id }}" aria-label="Comparar {{ stock.Marca }} {{ stock.Modelo }}">
+                    Comparar
+                </label>
+
+                {% if stock.Foto %}
+                <img src="{{ stock.Foto.url }}" alt="{{ stock.Marca }} {{ stock.Modelo }}">
+                {% else %}
+                Sin imagen
+                {% endif %}
+            </div>
+
+            <!-- Zona de contenido con título, precio y acciones disponibles -->
+            <div class="fav-body">
+                <h2 class="fav-title">{{ stock.Marca }} {{ stock.Modelo }}</h2>
+                <p class="fav-sub">{{ stock.Año }} · {{ stock.Titulo }}</p>
+                <p class="fav-price">€{{ stock.precio_formateado }}</p>
+
+                <!-- Acciones del favorito: abrir ficha o eliminarlo de la lista -->
+                <div class="fav-actions">
+                    <a class="fav-link" href="{% url 'item_page' stock.id %}">Ver detalle</a>
+
+                    <!-- Formulario POST para quitar el vehículo de favoritos -->
+                    <form method="post" action="{% url 'toggle_favorite' stock.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'favorites' %}">
+                        <button type="submit" class="fav-btn">Quitar de favoritos</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+    {% else %}
+    <!-- Estado vacío cuando el usuario aún no ha guardado vehículos -->
+    <div class="fav-empty">
+        Aún no tienes favoritos guardados. Ve a <a href="/stock/">Inventario</a> y añade los vehículos que más te interesen.
+    </div>
+    {% endif %}
+</div>
+
+
+{% endblock %}
